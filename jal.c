@@ -13,17 +13,23 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 
 int main (void)
 {
-    /*
-     * Set up the key and iv. Do I need to say to not hard code these in a
-     * real application? :-)
-     */
+
+    unsigned int salt[] = {12345, 54321};
+    unsigned char *key_data = "hello world";
+    int key_data_len = strlen(key_data);
+    int i, nrounds = 5;
+    unsigned char mkey[32], miv[32];
+    i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), (unsigned char *)&salt, key_data, key_data_len, nrounds, mkey, miv);
+
+    if (i != 32) {
+        printf("Key size is %d bits - should be 256 bits\n", i);
+        return -1;
+    }
 
     /* A 256 bit key */
-    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
     unsigned char *wKey = (unsigned char *)"01234567890123456789012345678905";
-
     /* A 128 bit IV */
-    unsigned char *iv = (unsigned char *)"0123456789012345";
+    unsigned char *wiv = (unsigned char *)"0123456789012345";
 
     /* Message to be encrypted */
     unsigned char *plaintext =
@@ -42,38 +48,30 @@ int main (void)
     int decryptedtext_len, ciphertext_len;
 
     /* Encrypt the plaintext */
-    ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,
+    ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), mkey, miv,
                               ciphertext);
 
     /* Do something useful with the ciphertext here */
     printf("Ciphertext is:\n");
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
+    /* print key and iv */
+    printf("\nKey:\n");
+    BIO_dump_fp (stdout, (const char *)mkey, strlen(mkey));
+
+    printf("\nIV:\n");
+    BIO_dump_fp (stdout, (const char *)miv, strlen(miv));
+
     /* Decrypt the ciphertext */
-    printf("\nKey: %s\n",key);
-    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
+    decryptedtext_len = decrypt(ciphertext, ciphertext_len, mkey, miv,
                                 decryptedtext);
 
     /* Add a NULL terminator. We are expecting printable text */
     decryptedtext[decryptedtext_len] = '\0';
 
     /* Show the decrypted text */
-    printf("Decrypted text is:\n");
+    printf("\nDecrypted text is:\n");
     printf("%s\n", decryptedtext);
-
-
-    /* Decrypt the ciphertext */
-    printf("\nKey: %s\n",wKey);
-    decryptedtext_len = decrypt(ciphertext, ciphertext_len, wKey, iv,
-                                decryptedtext);
-
-    /* Add a NULL terminator. We are expecting printable text */
-    decryptedtext[decryptedtext_len] = '\0';
-
-    /* Show the decrypted text */
-    printf("Decrypted text is:\n");
-    printf("%s\n", decryptedtext);
-
 
     return 0;
 }
