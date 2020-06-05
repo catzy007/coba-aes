@@ -1,0 +1,8 @@
+https://github.com/openssl
+https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
+https://www.openssl.org/docs/man1.0.2/man3/EVP_BytesToKey.html
+
+https://wiki.openssl.org/index.php/EVP_Key_Derivation
+
+
+gcc jal.c -o jal -lcrypto

@@ -13,12 +13,13 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 
 int main (void)
 {
-
+    /* generate key from KDF */
     unsigned int salt[] = {12345, 54321};
     unsigned char *key_data = "hello world";
     int key_data_len = strlen(key_data);
     int i, nrounds = 5;
-    unsigned char mkey[32], miv[32];
+    unsigned char mkey[33]; //32+1
+    unsigned char miv[33];
     i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), (unsigned char *)&salt, key_data, key_data_len, nrounds, mkey, miv);
 
     if (i != 32) {
@@ -26,10 +27,9 @@ int main (void)
         return -1;
     }
 
-    /* A 256 bit key */
+    /* random key and iv to check false negative */
     unsigned char *wKey = (unsigned char *)"01234567890123456789012345678905";
-    /* A 128 bit IV */
-    unsigned char *wiv = (unsigned char *)"0123456789012345";
+    unsigned char *wIv = (unsigned char *)"0123456789012345";
 
     /* Message to be encrypted */
     unsigned char *plaintext =
@@ -56,10 +56,10 @@ int main (void)
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
     /* print key and iv */
-    printf("\nKey:\n");
+    printf("\nKey %ld:\n",strlen(mkey)*8);
     BIO_dump_fp (stdout, (const char *)mkey, strlen(mkey));
 
-    printf("\nIV:\n");
+    printf("\nIV %ld:\n",strlen(miv)*8);
     BIO_dump_fp (stdout, (const char *)miv, strlen(miv));
 
     /* Decrypt the ciphertext */
@@ -72,6 +72,21 @@ int main (void)
     /* Show the decrypted text */
     printf("\nDecrypted text is:\n");
     printf("%s\n", decryptedtext);
+
+    //==================================
+    printf("\nKey:\n");
+    BIO_dump_fp (stdout, (const char *)wKey, strlen(wKey));
+    printf("\nIV:\n");
+    BIO_dump_fp (stdout, (const char *)wIv, strlen(wIv));
+    decryptedtext_len = decrypt(ciphertext, ciphertext_len, wKey, wIv,
+                                decryptedtext);
+    if(decryptedtext_len == -1){
+        printf("\nkey not match!\n");
+    }else{
+        decryptedtext[decryptedtext_len] = '\0';
+        printf("\nDecrypted text is:\n");
+        printf("%s\n", decryptedtext);
+    }
 
     return 0;
 }
@@ -163,10 +178,12 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
      * this stage.
      */
     if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)){
-        printf("key not match!\n");
-        handleErrors();
+        plaintext_len = -1;
+        // handleErrors();
+    }else{
+        plaintext_len += len;
     }
-    plaintext_len += len;
+    
 
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
