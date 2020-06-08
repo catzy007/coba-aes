@@ -5,6 +5,9 @@
 
 void handleErrors(void);
 
+int generateKey(unsigned int salt[], unsigned char *key_data, int nrounds, 
+            unsigned char *mkey, unsigned char *miv);
+
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
             unsigned char *iv, unsigned char *ciphertext);
 
@@ -14,18 +17,10 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 int main (void)
 {
     /* generate key from KDF */
-    unsigned int salt[] = {12345, 54321};
-    unsigned char *key_data = "hello world";
-    int key_data_len = strlen(key_data);
-    int i, nrounds = 5;
     unsigned char mkey[33]; //32+1
     unsigned char miv[33];
-    i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), (unsigned char *)&salt, key_data, key_data_len, nrounds, mkey, miv);
-
-    if (i != 32) {
-        printf("Key size is %d bits - should be 256 bits\n", i);
-        return -1;
-    }
+    unsigned int salt[] = {12345, 54321};
+    generateKey(salt, "hello world", 5, mkey, miv);
 
     /* random key and iv to check false negative */
     unsigned char *wKey = (unsigned char *)"01234567890123456789012345678905";
@@ -95,6 +90,16 @@ void handleErrors(void)
 {
     ERR_print_errors_fp(stderr);
     abort();
+}
+
+int generateKey(unsigned int salt[], unsigned char *key_data, int nrounds, unsigned char *mkey, unsigned char *miv){
+    int i;
+    int key_data_len = strlen(key_data);
+    i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), (unsigned char *)&salt, key_data, key_data_len, nrounds, mkey, miv);
+    if (i != 32) {
+        printf("Key size is %d bits - should be 256 bits\n", i);
+        return -1;
+    }
 }
 
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
