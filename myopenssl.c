@@ -114,10 +114,9 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 }
 
 void generateIntFromHex(unsigned char *ciphertext, int ciphertext_len){
-    printf("\nHex to Int %d:\n",ciphertext_len);
+    printf("\nHex to Int %dBit:\n",ciphertext_len*8);
     printf("{");
     for(int i=0; i<ciphertext_len; i++){
-        //printf("%d",(int)strtol(ciphertext[i], NULL, 16));
         printf("%d",ciphertext[i]);
         if(i < ciphertext_len-1){
             printf(",");
