@@ -99,7 +99,7 @@ int decryptAes(unsigned char *inputKey, int round, unsigned char *ciphertext, un
         // printf("%s\n", decryptedtext);
         return 0;
     }else{
-        printf("Ciphertext %ldBit:\n",ciphertext_len*8);
+        printf("Ciphertext %dBit:\n",ciphertext_len*8);
         BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
         printf("Key %dBit:\n",mkeylen*8);
         BIO_dump_fp (stdout, (const char *)mkey, mkeylen);
