@@ -4,8 +4,9 @@
 
 int main (void)
 {
-    unsigned char passwd[] = "hello123";
-    unsigned char *plaintext = (unsigned char *)"MSG:1)  ALBRECHT ((1062)) WAS REFUELLED BY BURGHAGEN ((219)) 28 SEPT IN #EH 70 ((11.51 N - 34.45 W 'C')) AND WAS TO REPORT WEATHER ON ENTERING BD ((AT 42.54 N)).  IN SPITE OF MANY REQUESTS HE HAS SENT NO ANSWER AND HAS NOT REACHED PORT.  NO INFO ON CAUSE OF LOSS, BUT PRESUMABLY SUNK BY A/C.";
+    int round = 5;
+    unsigned char passwd[] = "helloUsr";
+    unsigned char *plaintext = (unsigned char *)"MSG:AT 1700, 16TH, SUBMARINE U-1062 AGAIN RECEIVED A TORPEDO ATTACK ";
     printf("Plaintext %ldBit:\n",strlen(plaintext)*8);
     printf("%s\n", plaintext);
 
@@ -16,7 +17,7 @@ int main (void)
     int decryptedtext_len, ciphertext_len;
     
     //generate key from KDF
-    generateKey(NULL, "hello123", 5, mkey, miv);
+    generateKey(NULL, passwd, round, mkey, miv);
 
     //encrypt message
     ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), mkey, miv, ciphertext);
