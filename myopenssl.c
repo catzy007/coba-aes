@@ -6,6 +6,11 @@ void handleErrors(void)
     abort();
 }
 
+void custHandleErrors(void)
+{
+    ERR_print_errors_fp(stderr);
+}
+
 int generateKey(unsigned int salt[], unsigned char *key_data, int nrounds, unsigned char *mkey, unsigned char *miv){
     int i;
     int key_data_len = strlen(key_data);
@@ -98,14 +103,25 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
      */
     if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)){
         plaintext_len = -1;
-        // handleErrors();
     }else{
         plaintext_len += len;
     }
     
-
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
 
     return plaintext_len;
+}
+
+void generateIntFromHex(unsigned char *ciphertext, int ciphertext_len){
+    printf("\nHex to Int %d:\n",ciphertext_len);
+    printf("{");
+    for(int i=0; i<ciphertext_len; i++){
+        //printf("%d",(int)strtol(ciphertext[i], NULL, 16));
+        printf("%d",ciphertext[i]);
+        if(i < ciphertext_len-1){
+            printf(",");
+        }
+    }
+    printf("}\n");
 }

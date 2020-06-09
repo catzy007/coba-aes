@@ -14,13 +14,27 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
             unsigned char *iv, unsigned char *plaintext);
 
+
+void generateIntFromHex(unsigned char *ciphertext, int ciphertext_len){
+    printf("\nHex to Int %d:\n",ciphertext_len);
+    printf("{");
+    for(int i=0; i<ciphertext_len; i++){
+        //printf("%d",(int)strtol(ciphertext[i], NULL, 16));
+        printf("%d",ciphertext[i]);
+        if(i < ciphertext_len-1){
+            printf(",");
+        }
+    }
+    printf("}\n");
+}
+
 int main (void)
 {
     /* generate key from KDF */
-    unsigned char mkey[33]; //32+1
-    unsigned char miv[33];
-    unsigned int salt[] = {12345, 54321};
-    generateKey(salt, "hello world", 5, mkey, miv);
+    unsigned char mkey[33] = "\0"; //32+1
+    unsigned char miv[33] = "\0";
+    // unsigned int salt[] = {12345, 54321};
+    generateKey(NULL, "hello123", 5, mkey, miv);
 
     /* random key and iv to check false negative */
     unsigned char *wKey = (unsigned char *)"01234567890123456789012345678905";
@@ -28,17 +42,17 @@ int main (void)
 
     /* Message to be encrypted */
     unsigned char *plaintext =
-        (unsigned char *)"The quick brown fox jumps over the lazy dog";
+        (unsigned char *)"MSG:The quick brown fox jumps over the lazy dog";
 
     /*
      * Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, depending on the
      * algorithm and mode.
      */
-    unsigned char ciphertext[128];
+    unsigned char ciphertext[128] = "\0";
 
     /* Buffer for the decrypted text */
-    unsigned char decryptedtext[128];
+    unsigned char decryptedtext[128] = "\0";
 
     int decryptedtext_len, ciphertext_len;
 
@@ -47,8 +61,10 @@ int main (void)
                               ciphertext);
 
     /* Do something useful with the ciphertext here */
-    printf("Ciphertext is:\n");
+    printf("Ciphertext %ld:\n",strlen(ciphertext)*8);
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+
+    generateIntFromHex(ciphertext, ciphertext_len);
 
     /* print key and iv */
     printf("\nKey %ld:\n",strlen(mkey)*8);
@@ -65,7 +81,7 @@ int main (void)
     decryptedtext[decryptedtext_len] = '\0';
 
     /* Show the decrypted text */
-    printf("\nDecrypted text is:\n");
+    printf("\nDecrypted text is %d:\n",decryptedtext_len);
     printf("%s\n", decryptedtext);
 
     //==================================
@@ -184,7 +200,7 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
      */
     if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)){
         plaintext_len = -1;
-        // handleErrors();
+        handleErrors();
     }else{
         plaintext_len += len;
     }

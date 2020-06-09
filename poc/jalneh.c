@@ -4,27 +4,38 @@
 #include <string.h>
 
 void handleErrors(void);
-
-int generateKey(unsigned int salt[], unsigned char *key_data, int nrounds, 
-            unsigned char *mkey, unsigned char *miv);
-
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
             unsigned char *iv, unsigned char *ciphertext);
-
 int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
             unsigned char *iv, unsigned char *plaintext);
 
+int generateKey(unsigned int salt[], unsigned char *key_data, int nrounds, unsigned char *mkey, unsigned char *miv){
+    int i;
+    int key_data_len = strlen(key_data);
+    i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), (unsigned char *)&salt, key_data, key_data_len, nrounds, mkey, miv);
+    if (i != 32) {
+        printf("Key size is %d bits - should be 256 bits\n", i);
+        return -1;
+    }
+}
+
 int main (void)
 {
-    /* generate key from KDF */
-    unsigned char mkey[33]; //32+1
-    unsigned char miv[33];
+    /*
+     * Set up the key and iv. Do I need to say to not hard code these in a
+     * real application? :-)
+     */
+    
+    unsigned char mkey[32]; //32+1
+    unsigned char miv[32];
     unsigned int salt[] = {12345, 54321};
-    generateKey(salt, "hello world", 5, mkey, miv);
+    generateKey(NULL, "hello world", 1, mkey, miv);
 
-    /* random key and iv to check false negative */
-    unsigned char *wKey = (unsigned char *)"01234567890123456789012345678905";
-    unsigned char *wIv = (unsigned char *)"0123456789012345";
+    /* A 256 bit key */
+    unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+
+    /* A 128 bit IV */
+    unsigned char *iv = (unsigned char *)"0123456789012345";
 
     /* Message to be encrypted */
     unsigned char *plaintext =
@@ -50,38 +61,17 @@ int main (void)
     printf("Ciphertext is:\n");
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
-    /* print key and iv */
-    printf("\nKey %ld:\n",strlen(mkey)*8);
-    BIO_dump_fp (stdout, (const char *)mkey, strlen(mkey));
-
-    printf("\nIV %ld:\n",strlen(miv)*8);
-    BIO_dump_fp (stdout, (const char *)miv, strlen(miv));
-
     /* Decrypt the ciphertext */
-    decryptedtext_len = decrypt(ciphertext, ciphertext_len, mkey, miv,
+    decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
                                 decryptedtext);
 
     /* Add a NULL terminator. We are expecting printable text */
     decryptedtext[decryptedtext_len] = '\0';
 
     /* Show the decrypted text */
-    printf("\nDecrypted text is:\n");
+    printf("Decrypted text is:\n");
     printf("%s\n", decryptedtext);
 
-    //==================================
-    printf("\nKey:\n");
-    BIO_dump_fp (stdout, (const char *)wKey, strlen(wKey));
-    printf("\nIV:\n");
-    BIO_dump_fp (stdout, (const char *)wIv, strlen(wIv));
-    decryptedtext_len = decrypt(ciphertext, ciphertext_len, wKey, wIv,
-                                decryptedtext);
-    if(decryptedtext_len == -1){
-        printf("\nkey not match!\n");
-    }else{
-        decryptedtext[decryptedtext_len] = '\0';
-        printf("\nDecrypted text is:\n");
-        printf("%s\n", decryptedtext);
-    }
 
     return 0;
 }
@@ -90,16 +80,6 @@ void handleErrors(void)
 {
     ERR_print_errors_fp(stderr);
     abort();
-}
-
-int generateKey(unsigned int salt[], unsigned char *key_data, int nrounds, unsigned char *mkey, unsigned char *miv){
-    int i;
-    int key_data_len = strlen(key_data);
-    i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha1(), (unsigned char *)&salt, key_data, key_data_len, nrounds, mkey, miv);
-    if (i != 32) {
-        printf("Key size is %d bits - should be 256 bits\n", i);
-        return -1;
-    }
 }
 
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
@@ -182,13 +162,9 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
      * Finalise the decryption. Further plaintext bytes may be written at
      * this stage.
      */
-    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)){
-        plaintext_len = -1;
-        // handleErrors();
-    }else{
-        plaintext_len += len;
-    }
-    
+    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len))
+        handleErrors();
+    plaintext_len += len;
 
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
