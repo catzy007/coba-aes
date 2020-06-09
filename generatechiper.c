@@ -6,15 +6,17 @@ int main (void)
 {
     int round = 5;
     unsigned char passwd[] = "helloUsr";
-    unsigned char *plaintext = (unsigned char *)"MSG:AT 1700, 16TH, SUBMARINE U-1062 AGAIN RECEIVED A TORPEDO ATTACK ";
+    unsigned char *plaintext = (unsigned char *)"MSG:1)  ALBRECHT ((1062)) WAS REFUELLED BY BURGHAGEN ((219)) 28 SEPT IN #EH 70 ((11.51 N - 34.45 W 'C')) AND WAS TO REPORT WEATHER ON ENTERING BD ((AT 42.54 N)).  IN SPITE OF MANY REQUESTS HE HAS SENT NO ANSWER AND HAS NOT REACHED PORT.  NO INFO ON CAUSE OF LOSS, BUT PRESUMABLY SUNK BY A/C.";
     printf("Plaintext %ldBit:\n",strlen(plaintext)*8);
     printf("%s\n", plaintext);
 
-    unsigned char mkey[33] = "\0"; //32+1
-    unsigned char miv[33] = "\0";
+    unsigned char mkey[32] = "\0"; //32+1
+    unsigned char miv[16] = "\0";
     unsigned char ciphertext[4096] = "\0";
     unsigned char decryptedtext[4096] = "\0";
     int decryptedtext_len, ciphertext_len;
+    int mkeylen = sizeof(mkey)/sizeof(mkey[0]);
+    int mivlen = sizeof(miv)/sizeof(miv[0]);
     
     //generate key from KDF
     generateKey(NULL, passwd, round, mkey, miv);
@@ -23,10 +25,10 @@ int main (void)
     ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), mkey, miv, ciphertext);
     printf("\nCiphertext %dBit:\n",ciphertext_len*8);
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-    printf("\nKey %ldBit:\n",strlen(mkey)*8);
-    BIO_dump_fp (stdout, (const char *)mkey, strlen(mkey));
-    printf("\nIV %ldBit:\n",strlen(miv)*8);
-    BIO_dump_fp (stdout, (const char *)miv, strlen(miv));
+    printf("\nKey %dBit:\n",mkeylen*8);
+    BIO_dump_fp (stdout, (const char *)mkey, mkeylen);
+    printf("\nIV %dBit:\n",mivlen*8);
+    BIO_dump_fp (stdout, (const char *)miv, mivlen);
 
     //generate array of integer encoded hex
     generateIntFromHex(ciphertext, ciphertext_len);

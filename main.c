@@ -12,7 +12,7 @@ char* concat(const char *s1, const char *s2);
 int main(int argc, char *argv[]){
     printf("hello World!\n");
 
-    unsigned char ciphertext[] = {175,3,123,102,18,50,196,232,27,216,160,166,76,183,78,160,86,211,187,79,142,50,187,103,236,204,43,214,106,248,161,126,164,164,25,121,28,228,175,74,75,14,20,254,163,106,23,69,42,182,242,93,223,209,134,233,196,67,230,1,59,102,244,59,81,136,25,159,84,128,215,113,53,164,213,165,105,49,178,231};
+    unsigned char ciphertext[] = {73,144,229,244,46,171,125,237,222,107,150,3,132,122,76,130,185,115,44,47,18,68,198,164,192,67,136,86,182,199,140,90,250,182,110,236,116,244,244,91,186,201,196,20,148,118,198,74,120,133,244,241,135,39,185,177,54,48,178,181,107,9,156,118,212,229,115,114,69,97,29,53,230,188,184,185,56,69,63,22,189,143,88,208,0,25,5,36,193,144,137,44,157,117,194,145,223,135,194,119,231,129,97,118,93,217,227,185,20,231,111,40,31,242,14,83,34,205,65,227,169,204,35,48,1,203,151,255,125,179,216,157,146,180,74,242,133,229,214,25,236,210,89,173,3,177,28,180,141,194,104,170,32,67,25,255,134,32,217,226,16,230,244,14,48,10,33,28,219,57,195,193,127,9,242,121,204,78,131,204,196,8,57,86,177,59,185,116,242,11,76,97,86,69,118,227,196,167,66,161,172,106,106,6,190,56,161,175,245,241,74,45,231,159,128,182,183,255,165,38,120,205,149,215,180,111,160,47,21,79,119,191,232,210,68,85,108,250,250,175,131,217,213,144,35,82,201,216,85,156,0,231,246,72,171,122,157,73,22,232,215,53,240,71,98,53,14,8,234,38,164,103,100,105,102,43,142,176,3,102,237,3,226,54,55,135,74,200,249,134,248,237,117,98,85,229,77,87,17,76,246,164,156,159};
     unsigned int ciphertext_len = sizeof(ciphertext)/sizeof(unsigned char);
     printf("\nCiphertext %dBit:\n",ciphertext_len*8);
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
@@ -78,10 +78,13 @@ void indexToMyKey(int *idxMyKey, char *myKey, char *dictChar, int length){
 }
 
 int decryptAes(unsigned char *inputKey, int round, unsigned char *ciphertext, unsigned int ciphertext_len){
-    unsigned char mkey[33] = "\0"; //32+1
-    unsigned char miv[33] = "\0";
+    unsigned char mkey[32] = "\0"; //32+1
+    unsigned char miv[16] = "\0";
     generateKey(NULL, inputKey, round, mkey, miv);
 
+
+    int mkeylen = sizeof(mkey)/sizeof(mkey[0]);
+    int mivlen = sizeof(miv)/sizeof(miv[0]);
     unsigned char decryptedtext[1024] = "\0";
 
     int decryptedtext_len;
@@ -98,10 +101,10 @@ int decryptAes(unsigned char *inputKey, int round, unsigned char *ciphertext, un
     }else{
         printf("Ciphertext %ldBit:\n",strlen(ciphertext)*8);
         BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-        printf("Key %ldBit:\n",strlen(mkey)*8);
-        BIO_dump_fp (stdout, (const char *)mkey, strlen(mkey));
-        printf("IV %ldBit:\n",strlen(miv)*8);
-        BIO_dump_fp (stdout, (const char *)miv, strlen(miv));
+        printf("Key %dBit:\n",mkeylen*8);
+        BIO_dump_fp (stdout, (const char *)mkey, mkeylen);
+        printf("IV %dBit:\n",mivlen*8);
+        BIO_dump_fp (stdout, (const char *)miv, mivlen);
         decryptedtext[decryptedtext_len] = '\0';
         printf("Decrypted text %dBit:\n",decryptedtext_len*8);
         printf("%s\n", decryptedtext);
