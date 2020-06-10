@@ -2,15 +2,61 @@
 #include <stdlib.h>
 #include "myopenssl.h"
 
-void bruteforce(int length, unsigned char *ciphertext, unsigned int ciphertext_len);
 /*
-
+Begin bruteforce
+    Input
+        Character length to bruteforce -> int
+        Chipertext -> unsigned *char
+        Chipertext length -> unsigned int
+    Output
+        Iteration of bruteforce
 */
+void bruteforce(int length, unsigned char *ciphertext, unsigned int ciphertext_len);
 
+/*
+Convert array of progress index to progress text
+    Input
+        Progress Index -> *char
+        Dictionary -> *char
+        Character length -> int
+    Output
+        Progress text -> *char
+*/
 void indexToMyKey(int *idxMyKey, char *myKey, char *dictChar, int length);
+
+/*
+Decrypt chipertext using given key
+    Input
+        Input key -> unsigned *char
+        n round -> int
+        Chipertext -> unsigned *char
+        Chipertext length -> unsigned int
+    Output
+        Message not valid or decrypt failed -> 0 -> return
+        Message valid -> -1 -> return
+        Dump of chipertext, key, iv, message
+*/
 int decryptAes(unsigned char *inputKey, int round, 
                 unsigned char *ciphertext, unsigned int ciphertext_len);
+
+/*
+Validate given message by looking for `MSG:`
+    Input
+        Decrpted text -> const *char
+    Output
+        Message valid -> 1 -> return
+        Message invalid -> 0 -> return
+*/
 int validateMsg(const char *decryptedtext);
+
+/*
+Join two message together
+    Input
+        First message -> const *char
+        Second  message -> const *char
+    Output
+        Joined Message -> *char -> return
+*/
 char* concat(const char *s1, const char *s2);
 
 int main(int argc, char *argv[]){
