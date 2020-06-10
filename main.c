@@ -3,6 +3,10 @@
 #include "myopenssl.h"
 
 void bruteforce(int length, unsigned char *ciphertext, unsigned int ciphertext_len);
+/*
+
+*/
+
 void indexToMyKey(int *idxMyKey, char *myKey, char *dictChar, int length);
 int decryptAes(unsigned char *inputKey, int round, 
                 unsigned char *ciphertext, unsigned int ciphertext_len);
@@ -10,23 +14,29 @@ int validateMsg(const char *decryptedtext);
 char* concat(const char *s1, const char *s2);
 
 int main(int argc, char *argv[]){
+    //just random text to make sure this works
     printf("hello World!\n");
 
-    unsigned char ciphertext[] = {73,144,229,244,46,171,125,237,222,107,150,3,132,122,76,130,185,115,44,47,18,68,198,164,192,67,136,86,182,199,140,90,250,182,110,236,116,244,244,91,186,201,196,20,148,118,198,74,120,133,244,241,135,39,185,177,54,48,178,181,107,9,156,118,212,229,115,114,69,97,29,53,230,188,184,185,56,69,63,22,189,143,88,208,0,25,5,36,193,144,137,44,157,117,194,145,223,135,194,119,231,129,97,118,93,217,227,185,20,231,111,40,31,242,14,83,34,205,65,227,169,204,35,48,1,203,151,255,125,179,216,157,146,180,74,242,133,229,214,25,236,210,89,173,3,177,28,180,141,194,104,170,32,67,25,255,134,32,217,226,16,230,244,14,48,10,33,28,219,57,195,193,127,9,242,121,204,78,131,204,196,8,57,86,177,59,185,116,242,11,76,97,86,69,118,227,196,167,66,161,172,106,106,6,190,56,161,175,245,241,74,45,231,159,128,182,183,255,165,38,120,205,149,215,180,111,160,47,21,79,119,191,232,210,68,85,108,250,250,175,131,217,213,144,35,82,201,216,85,156,0,231,246,72,171,122,157,73,22,232,215,53,240,71,98,53,14,8,234,38,164,103,100,105,102,43,142,176,3,102,237,3,226,54,55,135,74,200,249,134,248,237,117,98,85,229,77,87,17,76,246,164,156,159};
+    //put your chipertext below
+    unsigned char ciphertext[] = {248,141,230,133,187,53,151,45,152,116,142,74,189,62,150,8,120,60,15,62,34,169,255,14,181,177,159,241,144,127,137,146,139,189,156,145,18,106,157,240,222,14,251,62,56,34,71,39,192,183,164,17,10,156,6,122,174,149,17,248,8,254,22,199,160,93,32,231,96,222,147,101,245,253,252,85,100,88,35,16,192,128,165,178,187,109,37,177,25,28,29,13,204,158,196,190,68,147,24,93,217,246,114,201,60,165,6,229,18,186,174,73,135,147,208,45,30,84,24,194,134,59,48,106,174,82,127,184,71,47,215,175,11,204,215,63,115,244,169,154,13,181,68,26,53,218,185,102,72,32,205,220,107,217,198,99,133,79,129,255,86,225,13,13,43,205,200,212,86,32,198,156,47,207,168,21,254,218,176,151,36,175,27,47,225,179,198,55,160,28,36,33,93,64,165,59,143,89,214,151,31,182,12,204,202,149,195,124,172,145,21,224,196,173,54,85,228,88,218,91,66,85,148,11,67,205,197,229,193,144,33,237,64,33,13,233,217,56,157,233,95,226,142,1,53,72,196,240,8,8,30,244,173,13,181,44,197,15,202,229,186,131,253,5,158,54,52,82,25,217,52,70,95,2,172,58,23,156,40,206,176,173,68,128,187,41,82,139,231,112,46,228,39,235,35,210,179,135,57,216,35,151,200,169};
     unsigned int ciphertext_len = sizeof(ciphertext)/sizeof(unsigned char);
     printf("\nCiphertext %dBit:\n",ciphertext_len*8);
     BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
+    //begin bruteforce
     bruteforce(3, ciphertext, ciphertext_len);
     return 0;
 }
 
 void bruteforce(int length, unsigned char *ciphertext, unsigned int ciphertext_len){
+    //this is dictionary section
     char *dictWord[] = {"trustno1","jordan","buster","hello","user","secret","soccer","admin","starwars","thomas"};
     char dictChar[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"};
     // char dictChar[] = {"1234567890"};
+    int dictWordLen=sizeof(dictWord)/sizeof(dictWord[0]);
     int dictCharLen=(sizeof(dictChar)/sizeof(char))-1;
 
+    //allocate memory to hold key
     char *myKey;
     myKey = malloc(sizeof(char)*length+1);
     int *idxMyKey;
@@ -35,7 +45,7 @@ void bruteforce(int length, unsigned char *ciphertext, unsigned int ciphertext_l
     // printf("%ld\n\n",sizeof(dictWord)/sizeof(dictWord[0]));
 
     //bruteforce algorithm
-    for(int j=0; j<8; j++){
+    for(int j=0; j<dictWordLen; j++){
         //set initial state for index myKey
         for(int i=0; i<=length; i++){
             idxMyKey[i] = -1;
@@ -61,37 +71,32 @@ void bruteforce(int length, unsigned char *ciphertext, unsigned int ciphertext_l
         }
     }
 
+    //jump point
     finish:
     
+    //clean some memory
     free(myKey);
     free(idxMyKey);
 }
 
-void indexToMyKey(int *idxMyKey, char *myKey, char *dictChar, int length){
-    for(int i=0; i<length; i++){
-        if(idxMyKey[i] < 0){
-            myKey[i] = '\0';
-        }else{
-            myKey[i] = dictChar[idxMyKey[i]];
-        }
-    }
-}
-
 int decryptAes(unsigned char *inputKey, int round, unsigned char *ciphertext, unsigned int ciphertext_len){
+    //generate key from KDF
     unsigned char mkey[32] = "\0"; //32+1
     unsigned char miv[16] = "\0";
     generateKey(NULL, inputKey, round, mkey, miv);
 
-
+    //some variables
     int mkeylen = sizeof(mkey)/sizeof(mkey[0]);
     int mivlen = sizeof(miv)/sizeof(miv[0]);
     unsigned char decryptedtext[1024] = "\0";
 
+    //decryption process
     int decryptedtext_len;
     decryptedtext_len = decrypt(ciphertext, ciphertext_len, mkey, miv, decryptedtext);
     decryptedtext[decryptedtext_len] = '\0';
 
     if(decryptedtext_len == -1 || !validateMsg(decryptedtext)){
+        //debug
         // printf("Key %ldBit:\n",strlen(mkey)*8);
         // BIO_dump_fp (stdout, (const char *)mkey, strlen(mkey));
         // decryptedtext[4] = '\0';
@@ -99,6 +104,7 @@ int decryptAes(unsigned char *inputKey, int round, unsigned char *ciphertext, un
         // printf("%s\n", decryptedtext);
         return 0;
     }else{
+        //print the msg after decrypt
         printf("Ciphertext %dBit:\n",ciphertext_len*8);
         BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
         printf("Key %dBit:\n",mkeylen*8);
@@ -112,6 +118,18 @@ int decryptAes(unsigned char *inputKey, int round, unsigned char *ciphertext, un
     }
 }
 
+//convert index to MyKey
+void indexToMyKey(int *idxMyKey, char *myKey, char *dictChar, int length){
+    for(int i=0; i<length; i++){
+        if(idxMyKey[i] < 0){
+            myKey[i] = '\0';
+        }else{
+            myKey[i] = dictChar[idxMyKey[i]];
+        }
+    }
+}
+
+//because this is crude implementation, i need this
 int validateMsg(const char *decryptedtext){
     if(decryptedtext[0]=='M' && decryptedtext[1]=='S' &&
     decryptedtext[2]=='G' && decryptedtext[3]==':'){
@@ -121,6 +139,7 @@ int validateMsg(const char *decryptedtext){
     }
 }
 
+//some function i found in stackoverflow
 char *concat(const char *s1, const char *s2){
     char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
     // in real code you would check for errors in malloc here

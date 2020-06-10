@@ -5,7 +5,7 @@
 int main (void)
 {
     int round = 5;
-    unsigned char passwd[] = "helloUsr";
+    unsigned char passwd[] = "secretKey";
     unsigned char *plaintext = (unsigned char *)"MSG:1)  ALBRECHT ((1062)) WAS REFUELLED BY BURGHAGEN ((219)) 28 SEPT IN #EH 70 ((11.51 N - 34.45 W 'C')) AND WAS TO REPORT WEATHER ON ENTERING BD ((AT 42.54 N)).  IN SPITE OF MANY REQUESTS HE HAS SENT NO ANSWER AND HAS NOT REACHED PORT.  NO INFO ON CAUSE OF LOSS, BUT PRESUMABLY SUNK BY A/C.";
     printf("Plaintext %ldBit:\n",strlen(plaintext)*8);
     printf("%s\n", plaintext);
@@ -31,6 +31,7 @@ int main (void)
     BIO_dump_fp (stdout, (const char *)miv, mivlen);
 
     //generate array of integer encoded hex
+    printf("\nHex to Int %dBit:\n",ciphertext_len*8);
     generateIntFromHex(ciphertext, ciphertext_len);
 
     //try to decrypt message to validate
